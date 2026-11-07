@@ -44,3 +44,22 @@ Predictions, eval queue (server, greedy):
   i.e. the same command run twice gives different outputs, for every model (decode batch size
   1-4 depends on request timing; F4/F5).
 - P11. Any divergence produces benchmark flips; flips concentrate on low-margin MMLU items.
+
+## Addendum A (2026-11-07, written after seeing ONE probe and before running the test below)
+
+Observation that motivated it (probe, 4 chunks, Q4_K_M): ivybridge vs alderlake mean KLD 0.013,
+same-top-1 93.5%; alderlake repack-off vs repack-on 0.013; Q8_0 ivybridge vs alderlake 0.0013.
+These are far larger than float32 reordering alone should give.
+
+Hypothesis H-amp: before every quantized matmul, activations are rounded to 8-bit integers per
+block (Q8_0 / Q8_K). A float32 rounding difference of ~1e-7 relative that moves a value across an
+int8 rounding boundary changes that activation by a full quantization step (~1/127 of the block
+maximum), so dynamic activation quantization amplifies execution-order differences. F16 weights
+round activations to F16 (finer grid); F32 weights with an F32 KV cache do not discretize
+activations at all.
+
+Test (amp.py): Qwen3-0.6B as F32 (+ f32 KV cache), F32 (+ default f16 KV), F16, Q8_0, Q4_K_M,
+Q4_0; perturbations ivybridge and sse42 against an alderlake reference; 8 chunks of 512.
+- A1. Mean KLD under the ivybridge perturbation is at least 10x smaller for F32+f32KV than for
+  Q8_0, and orders as F32+f32KV < F16 < Q8_0.
+- A2. Threads 4 vs 8 stays exactly 0 for every format (control).
