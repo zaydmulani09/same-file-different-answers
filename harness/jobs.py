@@ -1,6 +1,8 @@
 """The frozen run plan. `py -3 jobs.py <lane> <nlanes>` runs jobs[lane::nlanes] in order.
 Reference config R = alderlake backend, 8 threads, ubatch 512, flash-attn off, repack on,
-1 slot, sequential client, prompt cache off. Each other job changes exactly one factor."""
+1 slot, sequential client, prompt cache off. Each other job changes exactly one factor.
+isa-haswell, t4 and t12 were dropped from the eval queue after the KL probes showed them
+bitwise identical to R; the teacher-forced grid (kl.py) still covers them."""
 import subprocess, sys
 from pathlib import Path
 
@@ -17,9 +19,8 @@ SERVER4 = ["--np", "4", "--conc", "4", "--cache", "1"]  # how a parallel eval cl
 
 FULL = [  # one-factor-at-a-time sweep, primary model
     ("ref", []), ("ref-rerun", []),
-    ("isa-haswell", ["--variant", "haswell"]), ("isa-ivybridge", ["--variant", "ivybridge"]),
+    ("isa-ivybridge", ["--variant", "ivybridge"]),
     ("isa-sandybridge", ["--variant", "sandybridge"]), ("isa-sse42", ["--variant", "sse42"]),
-    ("t4", ["--threads", "4"]), ("t12", ["--threads", "12"]),
     ("ub7", ["--ub", "7"]), ("ub64", ["--ub", "64"]),
     ("fa-on", ["--fa", "on"]), ("repack-off", ["--repack", "off"]),
     ("cache-on", ["--cache", "1"]),
