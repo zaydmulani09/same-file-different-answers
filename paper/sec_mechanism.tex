@@ -1,0 +1,64 @@
+\section{Why small rounding differences become different answers}
+\label{sec:mechanism}
+
+Section~\ref{sec:background} explains why execution-equivalent configurations produce different
+float32 results: different kernels sum in different orders, and only some tiers fuse multiply
+and add. That alone does not explain the size of the effect. Float32 reordering perturbs a
+result by roughly $10^{-7}$ relative per operation, yet Table~\ref{tab:kl} shows mean KL
+divergences of $10^{-3}$ to $10^{-2}$ and top-1 disagreement on several percent of positions.
+This section tests one explanation and checks the code-level predictions.
+
+\subsection{Activation quantization amplifies rounding differences}
+Before every quantized matrix product, llama.cpp converts the float32 activation row into 8-bit
+integers per block: blocks of 32 values for Q8\_0 (used with Q4\_0 and Q8\_0 weights) and of 256
+values for Q8\_K (used with K-quants). Each value is mapped to
+$\mathrm{round}(127\,x/\max|x_{\text{block}}|)$. A perturbation of one unit in the last place
+almost never matters, but when it moves a value across a rounding boundary, the stored integer
+changes by one, which is an error of $\max|x|/127$, several orders of magnitude larger than the
+perturbation that caused it. A small simulation (\texttt{amp\_sim.py}) makes the scale concrete:
+perturbing Gaussian activations with sparse outliers by one ulp of relative error changes only
+$4.8\times10^{-6}$ of the Q8\_0 codes, but those changes raise the relative error of the
+quantized row from $1.2\times10^{-7}$ to $2.9\times10^{-5}$, a factor of about 250, in a single
+matmul. A transformer applies this step seven times per layer, and the errors feed forward.
+
+Weights stored as F16 also quantize activations, but to F16 (11 significant bits instead of
+about 8, and no shared block scale), and F32 weights with an F32 KV cache do not discretize
+activations at all. If amplification is the main mechanism, the same execution change should
+produce far smaller divergence for those formats. I pre-registered this test after one probe
+(Addendum~A in \texttt{PREDICTIONS.md}) and ran it on Qwen3-0.6B in six formats
+(Table~\ref{tab:amp}).
+
+\begin{table}[t]
+\centering\small
+\caption{Divergence from the \texttt{alderlake} reference for the same model in six formats,
+under two ISA changes and a thread-count change (8 chunks of 512 tokens). ``$\le10^{-6}$'' is
+the storage floor of the measurement: configurations that are bitwise identical also read
+$|\text{KLD}|\le10^{-6}$. F32+f32KV also stores the KV cache in F32.}
+\label{tab:amp}
+\input{tab_amp}
+\end{table}
+
+The prediction held. With nothing discretized (F32 weights, F32 KV cache), removing FMA
+(\texttt{ivybridge}) or SIMD (\texttt{sse42}) changes no top-1 token in 3,072 positions and the
+KL divergence is at the measurement floor. Storing the KV cache in F16 or the weights in F16
+changes one to three positions. Switching to Q8\_0 weights, with everything else equal, raises
+the mean KLD from below $10^{-6}$ to $1.3\times10^{-3}$ and the top-1 disagreement to about 2\%.
+Q4\_0 is about twice Q8\_0, and Q4\_K\_M, whose activations use 256-value Q8\_K blocks, is about
+ten times Q8\_0. I did not isolate why Q4\_K\_M is so much more sensitive; the larger activation
+block (a coarser step for most values in the block) is one candidate. The thread-count control
+is exactly zero in every format.
+
+The same amplification explains why the AVX-only tiers differ so much from the AVX2 tiers even
+though their integer arithmetic is identical: any float32 difference upstream of an activation
+quantizer, whether from FMA, a different summation order or a different kernel, is converted
+into integer differences of a full step at the next layer.
+
+\subsection{Code-level predictions}
+Table~\ref{tab:pred} lists the predictions written before the runs and their outcomes.
+
+\begin{table}[t]
+\centering\small
+\caption{Pre-registered predictions (\texttt{PREDICTIONS.md}) and outcomes.}
+\label{tab:pred}
+\input{tab_pred}
+\end{table}

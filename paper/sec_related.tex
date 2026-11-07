@@ -1,0 +1,41 @@
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Floating-point non-associativity.}
+That reordering a floating-point sum changes its value, and that fused multiply-add changes
+rounding, is textbook material \citep{goldberg1991,ieee754,monniaux2008}. In deep learning it has
+been studied mostly as a source of training variance across runs, libraries and hardware
+\citep{pham2020,zhuang2022} and of run-to-run variance in GPU kernels
+\citep{shanmugavelu2024}. None of these isolates the inference-time effect of a runtime that
+picks among compiled kernel variants per machine.
+
+\paragraph{Nondeterminism in LLM inference.}
+\citet{atil2024} report accuracy swings of up to 15\% across repeated runs of API models set to
+be deterministic, without access to the serving stack. \citet{yuan2025} show on GPUs that
+precision, GPU count and type, and batch size change reasoning-model outputs, and propose
+storing weights in 16 bits while computing in FP32. \citet{he2025} attribute most
+user-visible serving nondeterminism to a lack of batch invariance in kernels rather than to
+concurrency, and describe batch-invariant RMSNorm, matmul and attention. A line of 2026 systems
+work reduces the cost of determinism on GPUs: verified speculation \citep{gond2026}, padding
+with isolated prefill \citep{zhao2026}, shape-determined reduction orders that agree across GPU
+generations \citep{cooper2026}, and power-of-two INT8 scales that make two GEMM libraries agree
+bitwise \citep{chen2026}. All of this targets data-centre GPUs. \citet{zhao2026} build on the
+observation that most GPU kernels are position-invariant even when they are not batch-invariant;
+Section~\ref{sec:mechanism} shows that the CPU repack kernels studied here are not
+position-invariant.
+
+\paragraph{Variance and flips in evaluation.}
+\citet{madaan2024} quantify seed variance across benchmarks, \citet{miller2024} gives
+statistical tools for comparing models on evals, and \citet{biderman2024} document practical
+reproducibility problems in the lm-evaluation-harness. \citet{dutta2024} show that compressed
+models can match a baseline's accuracy while many individual answers flip, and propose flip rate
+and KL divergence as complements to accuracy. The present paper asks a narrower question that
+these do not separate: how many flips appear when nothing about the model changes, only the way
+the same quantized file is executed on a CPU.
+
+\paragraph{Local inference.}
+llama.cpp and its GGUF format are the common path for running quantized models on consumer
+CPUs \citep{llamacpp}. Quantization studies compare formats by perplexity, KL divergence to the
+full-precision model and benchmark accuracy, usually from one machine and one configuration.
+I found no measurement of how much of a reported difference could come from the execution
+configuration of a single file.

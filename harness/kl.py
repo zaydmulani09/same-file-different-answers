@@ -1,5 +1,5 @@
 """Teacher-forced divergence grid with llama-perplexity: for each model, save reference logits
-(alderlake, 8 threads, ub 512, fa off) on N chunks of 512 tokens of wikitext, then rerun each
+(alderlake, 4 threads, ub 512, fa off; 4 so it can share the CPU with the eval queue) on N chunks of 512 tokens of wikitext, then rerun each
 execution-equivalent configuration against that file and record mean/max KLD, same-top-1 rate
 and PPL. Writes results/kl.jsonl (one row per model x config). Skips rows already present."""
 import json, re, subprocess, sys
@@ -18,7 +18,7 @@ CONFIGS = {  # name: (variant, extra args)
     "ref-rerun": ("alderlake", []),
     "isa-haswell": ("haswell", []), "isa-ivybridge": ("ivybridge", []),
     "isa-sandybridge": ("sandybridge", []), "isa-sse42": ("sse42", []),
-    "t4": ("alderlake", ["-t", "4", "-tb", "4"]), "t12": ("alderlake", ["-t", "12", "-tb", "12"]),
+    "t8": ("alderlake", ["-t", "8", "-tb", "8"]), "t12": ("alderlake", ["-t", "12", "-tb", "12"]),
     "ub1": ("alderlake", ["-ub", "1"]), "ub7": ("alderlake", ["-ub", "7"]),
     "ub8": ("alderlake", ["-ub", "8"]), "ub64": ("alderlake", ["-ub", "64"]),
     "fa-on": ("alderlake", ["-fa", "on"]), "repack-off": ("alderlake", ["--no-repack"]),
@@ -28,7 +28,7 @@ CHUNKS = int(sys.argv[1]) if len(sys.argv) > 1 else 12
 
 def run(variant, model, extra, logits, base):
     cmd = [str(ISA / variant / "llama-perplexity.exe"), "-m", str(M / model), "-f", str(ROOT / "data" / "wiki_kl.txt"),
-           "-c", "512", "-b", "512", "--chunks", str(CHUNKS), "-t", "8", "-tb", "8", "-fa", "off",
+           "-c", "512", "-b", "512", "--chunks", str(CHUNKS), "-t", "4", "-tb", "4", "-fa", "off",
            "--kl-divergence-base", str(logits)] + (["--kl-divergence"] if not base else []) + extra
     # later flags win in llama.cpp's arg parser, so per-config overrides go last
     p = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")

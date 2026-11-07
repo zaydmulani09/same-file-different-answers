@@ -1,0 +1,28 @@
+\section{Limitations}
+\label{sec:limits}
+
+\paragraph{One machine, emulated tiers.}
+All ISA tiers ran on one Raptor Lake laptop by restricting which backend library could load.
+A real Sandy Bridge or SSE4.2-only machine runs the same compiled code, so the arithmetic should
+match, but I did not verify this on such hardware. AVX-512 tiers (\texttt{skylakex},
+\texttt{icelake}, \texttt{zen4}), ARM CPUs (where Q4\_0 repacks to different layouts) and GPU
+backends were not tested; each adds kernel variants, so the identity map in
+Table~\ref{tab:identity} is a lower bound on the number of distinct numerical behaviours one
+release can show.
+
+\paragraph{Small models, small subsets.}
+The models have 0.6 to 1 billion parameters and the evaluation uses 980 items per configuration.
+Small models have flatter output distributions and so more low-margin items, which likely
+inflates flip rates relative to larger models. Absolute flip counts should not be read as
+estimates for 7B or 70B models; the mechanism and the existence of the effect do not depend on
+model size.
+
+\paragraph{Release-specific mechanism.}
+The kernel facts in Section~\ref{sec:background} hold for release b11696. llama.cpp changes
+quickly, and the repack thresholds, tinyBLAS conditions and tier list may differ in other
+releases. The measurement harness is release-agnostic and can be rerun.
+
+\paragraph{One-factor design.}
+Each configuration differs from the reference in one factor. Interactions (for example a
+different tier and the parallel server together, which is what two different users would
+actually run) were not measured and would add, not remove, variation.

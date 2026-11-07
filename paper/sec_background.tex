@@ -1,0 +1,61 @@
+\section{Background: how one release runs one file}
+\label{sec:background}
+
+This section describes the parts of the llama.cpp CPU backend that matter for the experiments.
+Everything here refers to release b11696 (commit \texttt{ceefd16da}, 16 October 2026); file
+names are relative to \texttt{ggml/src/ggml-cpu/}.
+
+\paragraph{One release, several kernels sets.}
+The prebuilt Windows CPU package of a llama.cpp release ships one \texttt{ggml-cpu-*.dll} per
+x86 microarchitecture tier (\texttt{x64}, \texttt{sse42}, \texttt{sandybridge},
+\texttt{ivybridge}, \texttt{haswell}, \texttt{alderlake}, \texttt{skylakex}, \texttt{icelake},
+\texttt{zen4} and others). At start-up the loader scores each library against the CPU's feature
+flags and loads the best one. The user does not choose and is not told, apart from a
+\texttt{system\_info} log line. Two people who download the same release and the same GGUF file
+therefore run different compiled kernels if their CPUs differ. Because the selection only
+looks at which libraries are present, a single machine can run any tier its CPU supports by
+leaving only that library in the folder. This is how the ISA experiments in this paper emulate
+older or simpler hardware on one laptop.
+
+\paragraph{Where the ISA enters the arithmetic.}
+Quantized matrix products split into an integer part and a floating-point part. For a Q4\_0
+weight block and a Q8\_0 activation block, the 32 products of 4-bit and 8-bit integers are
+summed in integer arithmetic, which is exact on every instruction set. The block result is
+then scaled by the two block scales and accumulated across the row in single precision.
+That float accumulation is where tiers differ. In \texttt{arch/x86/quants.c} the AVX2 branch
+of \texttt{ggml\_vec\_dot\_q4\_0\_q8\_0} accumulates with \texttt{\_mm256\_fmadd\_ps}, a fused
+multiply-add with one rounding; the AVX branch uses \texttt{\_mm256\_add\_ps(\_mm256\_mul\_ps(\dots))},
+which rounds twice; the SSSE3 and generic branches use other lane layouts and summation orders.
+The same split appears in the Q4\_K, Q6\_K and F16 dot products and in the vector helpers used
+by normalization and softmax (\texttt{simd-mappings.h} defines \texttt{GGML\_F32x8\_FMA} as
+\texttt{\_mm256\_fmadd\_ps} only when \texttt{\_\_FMA\_\_} is defined).
+
+\paragraph{Weight repacking.}
+On CPUs that report AVX2, Q4\_0 and Q4\_K weight matrices are copied at load time into an
+interleaved $8\times8$ layout (\texttt{repack.cpp},
+\texttt{ggml\_repack\_get\_optimal\_repack\_type}); Q8\_0, Q6\_K and F16 are not repacked on
+x86. The repacked matmul processes the activation rows of a micro-batch in groups of four with
+a \texttt{gemm} kernel and handles the remaining $n \bmod 4$ rows one at a time with a
+\texttt{gemv} kernel (\texttt{forward\_mul\_mat\_one\_chunk}). The two kernels accumulate in
+different orders. A token's logits can therefore depend on its row index within its
+micro-batch modulo four, which is a function of prompt length, micro-batch size, prompt-cache
+hits and which other requests share the batch.
+
+\paragraph{Prompt path versus generation path.}
+For multi-row products llama.cpp calls \texttt{llamafile\_sgemm} (tinyBLAS) when the shape
+qualifies: never for a single row (\texttt{n < 2}), and for Q8\_0 and Q4\_0 only when
+$n \ge 8$ or $n = 4$; F16 additionally needs F16C. Otherwise it falls back to the per-row
+\texttt{vec\_dot}. Attention's $QK^\top$ product reads the F16 key cache and switches path
+with the number of query rows in the same way. The llama.cpp server documentation already warns
+that logits are not guaranteed to be bit-identical between prompt processing and token
+generation, and that the prompt cache can therefore make results nondeterministic.
+
+\paragraph{Knobs a user treats as neutral.}
+The following settings are documented as performance or memory options and do not change the
+model: the thread count (\texttt{-t}), the logical and physical batch sizes (\texttt{-b},
+\texttt{-ub}), flash attention (\texttt{-fa}), weight repacking (\texttt{--repack}), the number
+of server slots (\texttt{-np}) and the prompt cache (\texttt{cache\_prompt}, on by default in the
+server). In exact arithmetic every one of them computes the same function. I call two
+configurations \emph{execution-equivalent} when they differ only in such settings or in the
+selected ISA tier, and use the same release, the same GGUF file, the same prompt and greedy
+decoding.

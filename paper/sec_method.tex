@@ -1,0 +1,108 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Setup}
+All runs use one laptop: an Intel Core i7-1355U (2 performance and 8 efficiency cores, 12
+hardware threads; AVX2, FMA, F16C and AVX-VNNI, no AVX-512) with 12\,GB of RAM, running Windows
+11 (build 26300). The software is the unmodified prebuilt CPU package of llama.cpp release b11696
+(\texttt{llama-b11696-bin-win-cpu-x64.zip}, built with Clang 20.1.8). For each ISA tier I made a
+folder containing the release with exactly one \texttt{ggml-cpu-*.dll}; the start-up log
+confirms which tier loaded. Six tiers load on this CPU: \texttt{x64}, \texttt{sse42},
+\texttt{sandybridge} (AVX), \texttt{ivybridge} (AVX, F16C), \texttt{haswell} (AVX2, FMA, F16C)
+and \texttt{alderlake} (\texttt{haswell} plus AVX-VNNI). The AVX-512 tiers refuse to load.
+\texttt{alderlake} is the tier the loader picks on this machine when all libraries are present.
+
+\paragraph{Models.}
+Six GGUF files cover four quantization types and three architectures
+(Table~\ref{tab:models}). Q8\_0 and Q4\_K\_M were produced from the F16 file with the release's
+\texttt{llama-quantize}. As a control, quantizing on the \texttt{sse42} tier, on the
+\texttt{alderlake} tier, and with 1 or 8 threads gave byte-identical files (SHA-256 below), so the
+weights themselves do not depend on the machine that made them.
+
+\begin{table}[t]
+\centering\small
+\caption{Model files. Hashes are the first 16 hex digits of SHA-256.}
+\label{tab:models}
+\begin{tabular}{llll}
+\toprule
+label & file & weight types & SHA-256 prefix\\
+\midrule
+q06-f16   & Qwen3-0.6B F16 & F16 & \texttt{b166332e0224681e}\\
+q06-q80   & Qwen3-0.6B Q8\_0 & Q8\_0 & \texttt{f34d7b4d1035d121}\\
+q06-q4km  & Qwen3-0.6B Q4\_K\_M & Q4\_K, Q6\_K & \texttt{683e1b8a8ed85096}\\
+q06-q40   & Qwen3-0.6B Q4\_0 & Q4\_0 & \texttt{34a119e136d15e41}\\
+g3-1b-q40 & Gemma-3-1B-it QAT Q4\_0 & Q4\_0 & \texttt{6364f1139062ff56}\\
+q35-08-q40 & Qwen3.5-0.8B Q4\_0 & Q4\_0 (hybrid attention / linear recurrence) & \texttt{f9a8630a4a96076b}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Configurations.}
+The reference configuration $R$ is: \texttt{alderlake} tier, 8 threads for both generation and
+batch processing, logical batch 2048, micro-batch (\texttt{-ub}) 512, flash attention off,
+repacking on, one server slot, one client request at a time, prompt cache off. Every other
+configuration changes exactly one factor (Table~\ref{tab:configs}). \texttt{server4} is the
+setting a parallel evaluation client typically uses against \texttt{llama-server}: four slots,
+four concurrent requests and the server's default prompt cache. I ran it twice with identical
+commands (\texttt{server4-a}, \texttt{server4-b}) to measure run-to-run variation, and ran $R$
+twice for the same purpose.
+
+\begin{table}[t]
+\centering\small
+\caption{Execution-equivalent configurations. Each row differs from $R$ in one factor.}
+\label{tab:configs}
+\begin{tabular}{ll}
+\toprule
+name & change from $R$\\
+\midrule
+ref-rerun & none (second run of $R$)\\
+isa-haswell / -ivybridge / -sandybridge / -sse42 & CPU backend tier\\
+t4, t12 & 4 or 12 threads\\
+ub7, ub64 & micro-batch 7 or 64\\
+fa-on & flash attention on\\
+repack-off & weight repacking off\\
+cache-on & server prompt cache on (prefix reuse across requests)\\
+server4-a, server4-b & 4 slots, 4 concurrent clients, prompt cache on\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation tasks}
+I reuse a frozen evaluation set built earlier for an unrelated quantization study with fixed
+seeds: zero-shot MMLU \citep{hendrycks2021}, 4-shot chain-of-thought GSM8K \citep{cobbe2021} and
+5-shot TriviaQA \citep{joshi2017}. Each configuration runs the first 600 MMLU, 300 TriviaQA and
+80 GSM8K items of that file (980 items). Prompts are raw completions with no chat template.
+Decoding is greedy (temperature 0, top-$k$ 1). MMLU is scored by reading the top-20 next-token
+log-probabilities and taking the highest-scoring answer letter; its \emph{margin} is the
+log-probability gap between the best and second-best letter. TriviaQA generates up to 24 tokens
+and is scored by normalized alias match; GSM8K generates up to 256 tokens and is scored by the
+last number after \texttt{\#\#\#\#}.
+
+\subsection{Measurements}
+For every item the harness records the generated token ids, the log-probability of each chosen
+token and the first step's top-20 list, exactly as the server prints them (shortest
+round-trip decimal of a float32). Against the reference run of the same model I report:
+\begin{itemize}
+\item \textbf{identical}: token ids, every chosen-token log-probability and the first-step
+top-20 list are equal. Equality of these float strings implies equality of the underlying
+float32 values.
+\item \textbf{same output}: the generated token ids are equal, so the visible answer is equal.
+\item \textbf{flip}: the item is scored correct in one run and wrong in the other. I report flips
+in both directions, the accuracy change, and an exact McNemar test on the discordant pairs.
+\item For generative tasks, the \textbf{first divergence}: the index of the first generated
+token that differs.
+\end{itemize}
+
+Separately, a teacher-forced grid uses \texttt{llama-perplexity} with \texttt{--kl-divergence}
+on 12 chunks of 512 tokens of WikiText (6,144 scored positions per run, minus the first half of
+each chunk that the tool excludes). For each model it saves the reference logits once and then
+reports, for each configuration, the mean and maximum KL divergence from the reference and the
+fraction of positions whose top-1 token agrees. Because the tool stores reference
+log-probabilities in a 16-bit compressed form, a KLD of exactly zero means agreement up to that
+storage precision; exact bit equality is established by the server runs.
+
+\subsection{Pre-registration}
+Before reading any result I wrote down predictions derived from the source code
+(\texttt{PREDICTIONS.md}, committed at the start of the run; summarized in
+Section~\ref{sec:mechanism}). The design is one-factor-at-a-time; I did not search for
+configurations that maximize differences.
