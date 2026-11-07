@@ -1,0 +1,5 @@
+results/logs/
+results/*.tmp
+paper/*.aux
+paper/*.log
+__pycache__/
