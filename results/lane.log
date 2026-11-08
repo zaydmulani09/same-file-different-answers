@@ -1,0 +1,107 @@
+>> q06-q4km ref
+{"name": "q06-q4km__ref", "s": 1009, "mmlu": "187/600", "triviaqa": "27/300", "gsm8k": "19/80"}
+>> q06-q4km ref-rerun
+{"name": "q06-q4km__ref-rerun", "s": 993, "mmlu": "187/600", "triviaqa": "27/300", "gsm8k": "19/80"}
+>> q06-q4km isa-sandybridge
+{"name": "q06-q4km__isa-sandybridge", "s": 2669, "mmlu": "190/600", "triviaqa": "30/300", "gsm8k": "20/80"}
+>> q06-q4km ub7
+{"name": "q06-q4km__ub7", "s": 2656, "mmlu": "188/600", "triviaqa": "26/300", "gsm8k": "20/80"}
+>> q06-q4km cache-on
+{"name": "q06-q4km__cache-on", "s": 869, "mmlu": "184/600", "triviaqa": "25/300", "gsm8k": "19/80"}
+>> q06-q4km server4-a
+# restarted with trimmed queue Sat Nov  7 18:25:12 EST 2026
+>> q06-q4km ref
+skip q06-q4km__ref (exists)
+>> q06-q4km ref-rerun
+skip q06-q4km__ref-rerun (exists)
+>> q06-q4km isa-sandybridge
+skip q06-q4km__isa-sandybridge (exists)
+>> q06-q4km ub7
+skip q06-q4km__ub7 (exists)
+>> q06-q4km cache-on
+skip q06-q4km__cache-on (exists)
+>> q06-q4km server4-a
+{"name": "q06-q4km__server4-a", "s": 745, "mmlu": "189/600", "triviaqa": "29/300", "gsm8k": "21/80"}
+>> q06-q4km server4-b
+{"name": "q06-q4km__server4-b", "s": 919, "mmlu": "187/600", "triviaqa": "32/300", "gsm8k": "21/80"}
+>> q06-q40 ref
+{"name": "q06-q40__ref", "s": 1734, "mmlu": "188/600", "triviaqa": "25/300", "gsm8k": "25/80"}
+>> q06-q40 isa-sandybridge
+{"name": "q06-q40__isa-sandybridge", "s": 4808, "mmlu": "187/600", "triviaqa": "25/300", "gsm8k": "26/80"}
+>> q06-q40 server4-a
+# restarted again (dropped q4km ivybridge/sse42) Sat Nov  7 20:42:10 EST 2026
+>> q06-q4km ref
+skip q06-q4km__ref (exists)
+>> q06-q4km ref-rerun
+skip q06-q4km__ref-rerun (exists)
+>> q06-q4km isa-sandybridge
+skip q06-q4km__isa-sandybridge (exists)
+>> q06-q4km ub7
+skip q06-q4km__ub7 (exists)
+>> q06-q4km cache-on
+skip q06-q4km__cache-on (exists)
+>> q06-q4km server4-a
+skip q06-q4km__server4-a (exists)
+>> q06-q4km server4-b
+skip q06-q4km__server4-b (exists)
+>> q06-q40 ref
+skip q06-q40__ref (exists)
+>> q06-q40 isa-sandybridge
+skip q06-q40__isa-sandybridge (exists)
+>> q06-q40 server4-a
+{"name": "q06-q40__server4-a", "s": 889, "mmlu": "189/600", "triviaqa": "24/300", "gsm8k": "25/80"}
+>> q06-q80 ref
+# restarted (per-model ISA trimmed) Sat Nov  7 20:57:10 EST 2026
+>> q06-q4km ref
+skip q06-q4km__ref (exists)
+>> q06-q4km ref-rerun
+skip q06-q4km__ref-rerun (exists)
+>> q06-q4km isa-sandybridge
+skip q06-q4km__isa-sandybridge (exists)
+>> q06-q4km ub7
+skip q06-q4km__ub7 (exists)
+>> q06-q4km cache-on
+skip q06-q4km__cache-on (exists)
+>> q06-q4km server4-a
+skip q06-q4km__server4-a (exists)
+>> q06-q4km server4-b
+skip q06-q4km__server4-b (exists)
+>> q06-q40 ref
+skip q06-q40__ref (exists)
+>> q06-q40 isa-sandybridge
+skip q06-q40__isa-sandybridge (exists)
+>> q06-q40 server4-a
+skip q06-q40__server4-a (exists)
+>> q06-q80 ref
+{"name": "q06-q80__ref", "s": 3169, "mmlu": "236/600", "triviaqa": "37/300", "gsm8k": "35/80"}
+>> q06-q80 isa-sandybridge
+# restarted (dropped q80 sandybridge, repack-off eval) Sat Nov  7 21:50:28 EST 2026
+>> q06-q4km ref
+skip q06-q4km__ref (exists)
+>> q06-q4km ref-rerun
+skip q06-q4km__ref-rerun (exists)
+>> q06-q4km isa-sandybridge
+skip q06-q4km__isa-sandybridge (exists)
+>> q06-q4km ub7
+skip q06-q4km__ub7 (exists)
+>> q06-q4km cache-on
+skip q06-q4km__cache-on (exists)
+>> q06-q4km server4-a
+skip q06-q4km__server4-a (exists)
+>> q06-q4km server4-b
+skip q06-q4km__server4-b (exists)
+>> q06-q40 ref
+skip q06-q40__ref (exists)
+>> q06-q40 isa-sandybridge
+skip q06-q40__isa-sandybridge (exists)
+>> q06-q40 server4-a
+skip q06-q40__server4-a (exists)
+>> q06-q80 ref
+skip q06-q80__ref (exists)
+>> q06-q80 server4-a
+{"name": "q06-q80__server4-a", "s": 2322, "mmlu": "236/600", "triviaqa": "37/300", "gsm8k": "34/80"}
+>> q06-f16 ref
+{"name": "q06-f16__ref", "s": 3333, "mmlu": "239/600", "triviaqa": "35/300", "gsm8k": "34/80"}
+>> q06-f16 isa-ivybridge
+{"name": "q06-f16__isa-ivybridge", "s": 2843, "mmlu": "238/600", "triviaqa": "35/300", "gsm8k": "33/80"}
+>> q06-f16 server4-a

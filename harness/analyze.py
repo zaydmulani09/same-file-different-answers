@@ -149,6 +149,19 @@ def write_tables():
     L.append(r"\end{tabular}")
     (PAPER / "tab_eval.tex").write_text("\n".join(L) + "\n")
 
+    d = s["q06-q4km"]
+    L = [r"\begin{tabular}{lrrrrrrrr}", r"\toprule",
+         r"configuration & ident. \% & same out \% & MMLU ans. changed & flips & $p$ & $\Delta$MMLU & $\Delta$TQA & $\Delta$GSM\\",
+         r"\midrule"]
+    for c in [*CONFIGS, "server4-a_vs_b"]:
+        if c in d:
+            v, A = d[c], d[c]["all"]
+            L.append(f"{NICE[c]} & {pct(A['identical'], A['n'])} & {pct(A['same_output'], A['n'])} & {v['mmlu']['pred_changed']} & "
+                     f"{A['flips']} ({A['r2w']}/{A['w2r']}) & {A['mcnemar_p']:.2f} & {100*v['mmlu']['dacc']:+.1f} & "
+                     f"{100*v['triviaqa']['dacc']:+.1f} & {100*v['gsm8k']['dacc']:+.1f}\\\\")
+    L += [r"\bottomrule", r"\end{tabular}"]
+    (PAPER / "tab_eval_main.tex").write_text("\n".join(L) + "\n")
+
     q = s.get("_quant_pairs", {})
     L = [r"\begin{tabular}{lrrrrr}", r"\toprule",
          r"pair (both at $R$) & same out \% & MMLU ans. changed & flips & $\Delta$MMLU & $\Delta$GSM\\", r"\midrule"]
@@ -196,7 +209,7 @@ def write_tables():
                 elif abs(r["mean_kld"]) <= 1e-6 and r["same_top"] == 100.0:
                     cells.append("$=$")
                 else:
-                    cells.append(f"{r['mean_kld']:.1e} / {r['same_top']:.1f}".replace("e-0", "e-"))
+                    cells.append(f"{r['mean_kld']:.1e} / {r['same_top']:.2f}".replace("e-0", "e-"))
             L.append(f"{c} & " + " & ".join(cells) + r"\\")
         L += [r"\bottomrule", r"\end{tabular}"]
         (PAPER / "tab_kl.tex").write_text("\n".join(L) + "\n")

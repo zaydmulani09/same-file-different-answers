@@ -47,22 +47,37 @@ four concurrent requests and the server's default prompt cache. I ran it twice w
 commands (\texttt{server4-a}, \texttt{server4-b}) to measure run-to-run variation, and ran $R$
 twice for the same purpose.
 
+The two kinds of measurement below cost very different amounts of CPU time. A teacher-forced
+run takes about a minute; a benchmark run takes 40 to 55 minutes. So the teacher-forced grid
+covers every setting for every model, and the benchmark runs cover a subset chosen in advance
+for the primary model (Qwen3-0.6B Q4\_K\_M) and only $R$, one tier change and \texttt{server4}
+for the others. I dropped benchmark runs whose teacher-forced result already showed bitwise
+agreement with $R$ (\texttt{haswell}, thread counts) and, as the CPU budget ran short, runs that
+the grid showed to be numerically equivalent to one already queued. The full list of runs and
+the reason for each omission are in \texttt{harness/jobs.py}.
+
 \begin{table}[t]
 \centering\small
-\caption{Execution-equivalent configurations. Each row differs from $R$ in one factor.}
+\caption{Execution-equivalent configurations. Each row differs from the reference in one
+factor. The last two columns give the models it was run for in the teacher-forced grid and in
+the benchmark runs.}
 \label{tab:configs}
-\begin{tabular}{ll}
+\begin{tabular}{llll}
 \toprule
-name & change from $R$\\
+name & change from the reference & KL grid & benchmark runs\\
 \midrule
-ref-rerun & none (second run of $R$)\\
-isa-haswell / -ivybridge / -sandybridge / -sse42 & CPU backend tier\\
-t4, t12 & 4 or 12 threads\\
-ub7, ub64 & micro-batch 7 or 64\\
-fa-on & flash attention on\\
-repack-off & weight repacking off\\
-cache-on & server prompt cache on (prefix reuse across requests)\\
-server4-a, server4-b & 4 slots, 4 concurrent clients, prompt cache on\\
+ref-rerun & none (second run) & all & Q4\_K\_M\\
+isa-haswell, -sse42 & CPU backend tier & all & none\\
+isa-ivybridge & tier: AVX, F16C, no FMA & all & F16\\
+isa-sandybridge & tier: AVX, no F16C, no FMA & all & Q4\_K\_M, Qwen3 Q4\_0\\
+t8, t12 & 8 or 12 threads (KL reference: 4) & all & none\\
+ub1, ub8 & micro-batch 1 or 8 & all & none\\
+ub7, ub64 & micro-batch 7 or 64 & all & Q4\_K\_M\\
+fa-on & flash attention on & all & Q4\_K\_M\\
+repack-off & weight repacking off & all & none\\
+cache-on & server prompt cache on & none & Q4\_K\_M\\
+server4-a & 4 slots, 4 clients, prompt cache on & none & all six\\
+server4-b & second run of server4-a & none & Q4\_K\_M\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -94,12 +109,16 @@ token that differs.
 \end{itemize}
 
 Separately, a teacher-forced grid uses \texttt{llama-perplexity} with \texttt{--kl-divergence}
-on 12 chunks of 512 tokens of WikiText (6,144 scored positions per run, minus the first half of
-each chunk that the tool excludes). For each model it saves the reference logits once and then
-reports, for each configuration, the mean and maximum KL divergence from the reference and the
-fraction of positions whose top-1 token agrees. Because the tool stores reference
-log-probabilities in a 16-bit compressed form, a KLD of exactly zero means agreement up to that
-storage precision; exact bit equality is established by the server runs.
+on 12 chunks of 512 tokens of WikiText; the tool scores the second half of each chunk, so each
+run covers 3,072 positions. Its reference is \texttt{alderlake} with 4 threads (so that it could
+share the CPU with the benchmark queue), otherwise as $R$. For each model it saves the reference
+logits once and then reports, for each configuration, the mean and maximum KL divergence from
+the reference and the fraction of positions whose top-1 token agrees. The tool stores the
+reference log-probabilities in a compressed 16-bit form, so two bitwise-identical runs do not
+read exactly zero: they show $|\text{mean KLD}|\le10^{-6}$ and a maximum around $6\times10^{-5}$.
+I call this the storage floor. A configuration at the floor with 100\% top-1 agreement is
+reported as indistinguishable from the reference; exact bit equality is established only by the
+benchmark runs.
 
 \subsection{Pre-registration}
 Before reading any result I wrote down predictions derived from the source code

@@ -6,8 +6,8 @@ All ISA tiers ran on one Raptor Lake laptop by restricting which backend library
 A real Sandy Bridge or SSE4.2-only machine runs the same compiled code, so the arithmetic should
 match, but I did not verify this on such hardware. AVX-512 tiers (\texttt{skylakex},
 \texttt{icelake}, \texttt{zen4}), ARM CPUs (where Q4\_0 repacks to different layouts) and GPU
-backends were not tested; each adds kernel variants, so the identity map in
-Table~\ref{tab:identity} is a lower bound on the number of distinct numerical behaviours one
+backends were not tested; each adds kernel variants, so the map in
+Table~\ref{tab:kl} is a lower bound on the number of distinct numerical behaviours one
 release can show.
 
 \paragraph{Small models, small subsets.}

@@ -36,8 +36,8 @@ interleaved $8\times8$ layout (\texttt{repack.cpp},
 \texttt{ggml\_repack\_get\_optimal\_repack\_type}); Q8\_0, Q6\_K and F16 are not repacked on
 x86. The repacked matmul processes the activation rows of a micro-batch in groups of four with
 a \texttt{gemm} kernel and handles the remaining $n \bmod 4$ rows one at a time with a
-\texttt{gemv} kernel (\texttt{forward\_mul\_mat\_one\_chunk}). The two kernels accumulate in
-different orders. A token's logits can therefore depend on its row index within its
+\texttt{gemv} kernel (\texttt{forward\_mul\_mat\_one\_chunk}). If the two kernels round
+differently, a token's logits depend on its row index within its
 micro-batch modulo four, which is a function of prompt length, micro-batch size, prompt-cache
 hits and which other requests share the batch.
 

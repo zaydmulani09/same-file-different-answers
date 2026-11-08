@@ -1,0 +1,21 @@
+\begin{abstract}
+People compare quantized language models by running benchmarks locally, usually with llama.cpp
+on a CPU, and treat a difference of a point or two as a property of the weights. I measure how
+much of such a difference can come from settings that do not change the model at all: the CPU
+backend tier the runtime picks for the machine, the micro-batch size, flash attention, weight
+repacking, and the server's prompt cache and parallel slots. With the release, the GGUF file,
+the prompts and greedy decoding held fixed, I ran six model files through a teacher-forced
+grid of twelve such settings and 980 benchmark items (MMLU, TriviaQA, GSM8K) under a subset of
+them. A rerun of the same configuration is bitwise identical and thread count never matters.
+Most other settings do. For Qwen3-0.6B in Q4\_K\_M, loading the AVX tier instead of the AVX2 tier
+changed 41 of 600 MMLU answers and 20\% of all generated outputs while no task's accuracy moved by
+more than 1.3 points, and two runs of the identical parallel-server command agreed bitwise on 45\%
+of items. A pre-registered test traces the size of the effect to activation quantization: the
+same tier change leaves an F32 model at the measurement floor but gives a mean KL divergence of
+about $10^{-3}$ for Q8\_0 and $10^{-2}$ for Q4\_K\_M, because rounding activations to 8-bit
+integers turns float32 rounding differences into full quantization steps. Measured against the
+gap between quantization formats, the execution-only change is about 60\% of the Q8\_0-versus-F16
+divergence. I give a short protocol for pinning these settings and for measuring the noise floor
+before comparing two quantized files. Code, raw per-item outputs and the pre-registration are
+public.
+\end{abstract}

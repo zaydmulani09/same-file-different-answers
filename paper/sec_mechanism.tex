@@ -62,3 +62,18 @@ Table~\ref{tab:pred} lists the predictions written before the runs and their out
 \label{tab:pred}
 \input{tab_pred}
 \end{table}
+
+Of the thirteen predictions the runs tested, twelve held. The clear failure is micro-batch 7, which I
+expected to differ from micro-batch 512 for every model because the repacked kernels process
+the rows of a micro-batch in groups of four with one routine and the remainder with another
+(F4 in \texttt{PREDICTIONS.md}). It differs only for Q4\_K\_M. For Q4\_0 the grouped and
+remainder routines are generated from one template and evidently produce the same bits per row,
+while the Q4\_K routines are separately written kernels that do not. For Q8\_0, which is not
+repacked, micro-batch 7 also moves the matrix products from the tinyBLAS path to the per-row
+dot product path (F5), yet the logits are identical; both paths accumulate each 32-value block
+with one fused multiply-add into an 8-lane float32 accumulator and reduce it at the end, which is
+consistent with the match, though I did not check them instruction by instruction. Micro-batch
+1 differs everywhere, so the attention path, which changes with the number of query rows, is the
+likely source of that difference. The general lesson is that whether a performance knob changes
+the numbers depends on the weight format, so a setting found safe for one file is not safe for
+another.

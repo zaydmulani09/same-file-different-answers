@@ -21,8 +21,8 @@ with isolated prefill \citep{zhao2026}, shape-determined reduction orders that a
 generations \citep{cooper2026}, and power-of-two INT8 scales that make two GEMM libraries agree
 bitwise \citep{chen2026}. All of this targets data-centre GPUs. \citet{zhao2026} build on the
 observation that most GPU kernels are position-invariant even when they are not batch-invariant;
-Section~\ref{sec:mechanism} shows that the CPU repack kernels studied here are not
-position-invariant.
+Section~\ref{sec:mechanism} shows that the CPU repack kernels for Q4\_K are not
+position-invariant, while those for Q4\_0 are.
 
 \paragraph{Variance and flips in evaluation.}
 \citet{madaan2024} quantify seed variance across benchmarks, \citet{miller2024} gives

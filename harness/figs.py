@@ -39,7 +39,7 @@ def fig_kl_grid():
     for i in range(len(models)):
         for j in range(len(configs)):
             v = M[i, j]
-            txt = "—" if math.isnan(v) else ("0" if v == 0 else f"{v:.0e}".replace("e-0", "e-"))
+            txt = "n/a" if math.isnan(v) else ("0" if v == 0 else f"{v:.0e}".replace("e-0", "e-"))
             ax.text(j, i, txt, ha="center", va="center", fontsize=6,
                     color=INK if (math.isnan(v) or v == 0 or disp[i, j] < -4) else "white")
     ax.set_xticks(range(len(configs)), configs, rotation=40, ha="right")
@@ -48,7 +48,7 @@ def fig_kl_grid():
     cb.set_label("log10 mean KLD", fontsize=7)
     ax.set_title("Teacher-forced mean KL divergence from the reference (0 = no difference at storage precision)", fontsize=8)
     fig.tight_layout()
-    fig.savefig(OUT / "kl_grid.pdf")
+    fig.savefig(OUT / "kl_grid.pdf"); fig.savefig(OUT / "kl_grid.png")
 
 
 def fig_margins():
@@ -75,7 +75,7 @@ def fig_margins():
     ax.set_ylabel("items")
     ax.legend(frameon=False, fontsize=6.5)
     fig.tight_layout()
-    fig.savefig(OUT / "margins.pdf")
+    fig.savefig(OUT / "margins.pdf"); fig.savefig(OUT / "margins.png")
 
 
 def fig_divergence():
@@ -103,7 +103,7 @@ def fig_divergence():
     ax.set_ylim(0, 1)
     ax.legend(frameon=False, fontsize=6.5)
     fig.tight_layout()
-    fig.savefig(OUT / "divergence.pdf")
+    fig.savefig(OUT / "divergence.pdf"); fig.savefig(OUT / "divergence.png")
 
 
 def fig_noise_floor():
@@ -122,7 +122,7 @@ def fig_noise_floor():
     ax.set_yticks(range(len(labels)), labels, fontsize=6)
     ax.set_xlabel("MMLU accuracy change (points)")
     fig.tight_layout()
-    fig.savefig(OUT / "noise_floor.pdf")
+    fig.savefig(OUT / "noise_floor.pdf"); fig.savefig(OUT / "noise_floor.png")
 
 
 if __name__ == "__main__":

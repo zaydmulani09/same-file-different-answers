@@ -18,7 +18,9 @@ This makes runs bitwise reproducible (Section~\ref{sec:results}) at the cost of 
 three execution-equivalent configurations (for example a second tier and a different micro-batch
 size) and count flips. Any model-versus-model difference that is not clearly larger than the
 spread among these runs should not be reported as a difference. For the 980-item set used here,
-that spread was up to 2.5 points on the 80-item GSM8K subset and 1 point on 600 MMLU items.
+accuracy moved by at most 2.5 points on the 80-item GSM8K subset (two items) and 0.5 points
+on 600 MMLU items, but up to 49 MMLU answers changed. The accuracy spread understates the noise;
+the answer-level spread is the better measure.
 \item \textbf{Use paired statistics.} Report discordant pairs (flips in each direction) and an
 exact McNemar test rather than two accuracies with independent error bars \citep{miller2024}.
 Item-level agreement between two configurations of the same file is a direct estimate of how
@@ -31,5 +33,6 @@ configurations.
 For runtime developers, the amplification result suggests where determinism is cheapest to buy.
 Thread count is already invariant. Making the activation quantizer's input invariant to the
 kernel path (for example by fixing the reduction order of the float epilogue that feeds it) would
-remove most of the divergence between tiers, and making the repacked matmul use one kernel for
-every row regardless of $n \bmod 4$ would remove the dependence on batch composition.
+remove most of the divergence between tiers, and making the Q4\_K repacked matmul round every row the same way regardless of $n \bmod 4$,
+as the Q4\_0 one already does, would remove one dependence on batch composition. These are
+suggestions from reading the code; I did not implement or measure them.
