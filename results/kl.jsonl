@@ -69,3 +69,4 @@
 {"model": "q35-08-q40", "config": "isa-sandybridge", "chunks": 12, "mean_kld": 0.001269, "max_kld": 0.022457, "same_top": 97.908, "rms_dp": 0.792, "ppl_q": 21.084073}
 {"model": "q35-08-q40", "config": "isa-sse42", "chunks": 12, "mean_kld": 0.0013, "max_kld": 0.016693, "same_top": 97.941, "rms_dp": 0.788, "ppl_q": 21.088978}
 {"model": "q35-08-q40", "config": "t8", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
+{"model": "q35-08-q40", "config": "t12", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}

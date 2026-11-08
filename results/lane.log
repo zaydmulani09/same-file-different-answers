@@ -105,3 +105,5 @@ skip q06-q80__ref (exists)
 >> q06-f16 isa-ivybridge
 {"name": "q06-f16__isa-ivybridge", "s": 2843, "mmlu": "238/600", "triviaqa": "35/300", "gsm8k": "33/80"}
 >> q06-f16 server4-a
+{"name": "q06-f16__server4-a", "s": 1202, "mmlu": "239/600", "triviaqa": "35/300", "gsm8k": "34/80"}
+>> g3-1b-q40 ref

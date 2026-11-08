@@ -3,3 +3,4 @@ results/*.tmp
 paper/*.aux
 paper/*.log
 __pycache__/
+outreach/
