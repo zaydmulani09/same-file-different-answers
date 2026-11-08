@@ -1,0 +1,36 @@
+\section{Reproduction}
+\label{app:repro}
+
+All code, the frozen evaluation set, every per-item output and the pre-registration file are in
+the accompanying repository. The steps below reproduce the results on any x86-64 Windows machine
+with AVX2; other CPUs will load a different set of tiers.
+
+\begin{enumerate}
+\item Download \texttt{llama-b11696-bin-win-cpu-x64.zip} from the llama.cpp releases page and
+make one folder per tier, each holding the whole release except all \texttt{ggml-cpu-*.dll} files
+but one. Run any tool once per folder and check the \texttt{system\_info} line.
+\item Obtain the GGUF files in Table~\ref{tab:models} (Q8\_0, Q4\_K\_M and F32 are produced from
+the F16 file with \texttt{llama-quantize}) and check the hashes.
+\item \texttt{py -3 harness/jobs.py 0 1} runs the evaluation queue; \texttt{py -3 harness/kl.py 12}
+runs the teacher-forced grid; \texttt{py -3 harness/amp.py 8} runs the amplification test;
+\texttt{py -3 harness/analyze.py} and \texttt{py -3 harness/figs.py} rebuild every table and
+figure in this paper from the raw outputs.
+\end{enumerate}
+
+Each evaluation run writes one JSON line per item with the generated token ids, the float32
+log-probability of every chosen token and the first step's top-20 list, so any comparison in
+this paper can be recomputed without rerunning a model.
+
+\section{Full evaluation table}
+\label{app:full}
+
+\begin{table}[h]
+\centering\scriptsize
+\caption{Every evaluation run against its model's reference run $R$. ``ident.'': items whose
+tokens and log-probabilities are bitwise equal; ``same out'': items whose generated tokens are
+equal; ``MMLU ans. changed'': of 600; flips are over all 980 items (reference right and other
+wrong / reference wrong and other right). The last row per model compares the two
+\texttt{server4} runs with each other.}
+\label{tab:evalfull}
+\input{tab_eval}
+\end{table}

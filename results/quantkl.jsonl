@@ -1,0 +1,3 @@
+{"model": "q06-q80", "vs": "q06-f16", "mean_kld": 0.002285, "same_top": 97.451}
+{"model": "q06-q40", "vs": "q06-f16", "mean_kld": 0.194146, "same_top": 78.954}
+{"model": "q06-q4km", "vs": "q06-f16", "mean_kld": 0.104237, "same_top": 83.464}

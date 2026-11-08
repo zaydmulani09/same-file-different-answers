@@ -1,0 +1,59 @@
+\section{Introduction}
+\label{sec:intro}
+
+In October 2026 I ran a pre-registered gate for a quantization study on a small language model:
+a candidate format passed only if its MMLU score stayed at or above 51.0 on 200 questions. It
+scored 50.5 and failed by one question. The same report noted that running another format twice,
+with identical code, had given 107 and 106 correct MMLU answers, because the evaluation used a
+four-slot \texttt{llama-server} whose batches form differently on every run. The gate stayed
+failed as written, but it left a question I could not answer at the time: how much of a
+measured difference between two quantized models, run locally on a CPU, comes from the models
+and how much from how the arithmetic happened to be executed?
+
+This paper measures that. I hold the release, the weights file, the prompts and greedy decoding
+fixed and change only settings that the documentation presents as performance options with no
+effect on the model: the CPU backend tier the runtime loads, the thread count, the micro-batch
+size, flash attention, weight repacking, the server's prompt cache and its number of parallel
+slots. I call these \emph{execution-equivalent} configurations. In exact arithmetic they compute
+the same function. In float32 on a CPU, most of them do not, and the differences are large
+enough to change answers.
+
+The setting is llama.cpp on x86 CPUs, the common way to run quantized GGUF models on consumer
+hardware. Two properties make it a good case. First, one prebuilt release ships several
+compiled copies of its CPU kernels and picks one at start-up from the machine's instruction-set
+flags, so two people running the same command on different laptops silently run different
+code. Second, quantized matrix products round activations to 8-bit integers before every
+multiplication. Prior work on inference nondeterminism concentrates on GPU serving stacks
+\citep{he2025,yuan2025,gond2026,zhao2026,cooper2026}; this paper looks at the CPU path, where
+neither batch invariance nor cross-machine agreement has been measured as far as I can find.
+
+\paragraph{Findings.}
+On Qwen3-0.6B in Q4\_K\_M, with 980 items from MMLU, TriviaQA and GSM8K:
+\begin{itemize}
+\item Running the same configuration twice is bitwise reproducible, and thread count never
+mattered in any test. Everything else I changed did.
+\item Running the same file on the AVX-only backend tier instead of the AVX2 tier left no item
+bitwise identical, changed 20\% of generated outputs and 41 of 600 MMLU answers, and produced 37
+correct/incorrect flips, while every task's accuracy moved by at most 1.3 points. On wikitext the
+tier change alone gives a mean KL divergence of 0.011 from the reference and changes the top-1
+token at 6\% of positions.
+\item The common parallel evaluation setup (four slots, four concurrent clients, prompt cache on)
+is not reproducible from run to run: two runs of the identical command agreed bitwise on only
+45\% of items and produced different GSM8K reasoning chains for 47 of 80 problems.
+\item The size of these effects is explained by activation quantization. With F32 weights and
+an F32 KV cache, the same tier change leaves the logits within the measurement floor and changes
+no top-1 token; with Q8\_0 weights the mean KL divergence is above $10^{-3}$, and with Q4\_K\_M
+above $10^{-2}$. Rounding activations to integers turns ulp-level float differences into
+full-step integer differences that propagate through the network.
+\end{itemize}
+
+\paragraph{Contributions.}
+(1) A measurement of how much execution-equivalent settings change outputs and benchmark scores
+for quantized models on CPUs, across six model files and up to twelve settings, with all raw
+per-item outputs released. (2) A pre-registered test that identifies activation quantization as
+the amplifier, plus code-level explanations, with pre-registered predictions, of which settings
+are safe and which are not. (3) A short protocol for local evaluations: which settings to pin,
+what to report, and how to size the noise floor before comparing two quantized models.
+Section~\ref{sec:background} describes the runtime, Section~\ref{sec:method} the design,
+Section~\ref{sec:results} the measurements, Section~\ref{sec:mechanism} the mechanism and
+Section~\ref{sec:recommend} the protocol.

@@ -2,7 +2,9 @@
 Reference config R = alderlake backend, 8 threads, ubatch 512, flash-attn off, repack on,
 1 slot, sequential client, prompt cache off. Each other job changes exactly one factor.
 isa-haswell, t4 and t12 were dropped from the eval queue after the KL probes showed them
-bitwise identical to R; the teacher-forced grid (kl.py) still covers them."""
+bitwise identical to R; isa-ivybridge and isa-sse42 were dropped because the KL grid shows
+them numerically equivalent to isa-sandybridge for this model and the CPU budget ran short.
+The teacher-forced grid (kl.py) still covers all of them."""
 import subprocess, sys
 from pathlib import Path
 
@@ -19,10 +21,9 @@ SERVER4 = ["--np", "4", "--conc", "4", "--cache", "1"]  # how a parallel eval cl
 
 FULL = [  # one-factor-at-a-time sweep, primary model
     ("ref", []), ("ref-rerun", []),
-    ("isa-ivybridge", ["--variant", "ivybridge"]),
-    ("isa-sandybridge", ["--variant", "sandybridge"]), ("isa-sse42", ["--variant", "sse42"]),
+    ("isa-sandybridge", ["--variant", "sandybridge"]),
     ("ub7", ["--ub", "7"]), ("ub64", ["--ub", "64"]),
-    ("fa-on", ["--fa", "on"]), ("repack-off", ["--repack", "off"]),
+    ("fa-on", ["--fa", "on"]),  # repack-off: KL grid only (CPU budget)
     ("cache-on", ["--cache", "1"]),
     ("server4-a", SERVER4), ("server4-b", SERVER4),
 ]
@@ -30,8 +31,13 @@ SHORT = [("ref", []), ("isa-sandybridge", ["--variant", "sandybridge"]), ("serve
 
 FIRST = {"ref", "ref-rerun", "isa-sandybridge", "server4-a", "server4-b", "cache-on", "ub7"}
 JOBS = [("q06-q4km", n, a) for n, a in FULL if n in FIRST]  # priority order: most informative first
-for m in ("q06-q40", "q06-q80", "q06-f16", "g3-1b-q40", "q35-08-q40"):
-    JOBS += [(m, n, a) for n, a in SHORT]
+JOBS += [("q06-q40", n, a) for n, a in SHORT]
+JOBS += [("q06-q80", "ref", []), ("q06-q80", "server4-a", SERVER4)]  # q80 ISA: KL grid only (CPU budget)
+# CPU budget: F16 gets the FMA-only tier change (ivybridge: AVX+F16C, the tier used in amp.py)
+# as a low-amplification control; the two other architectures get ref + server4 only.
+JOBS += [("q06-f16", "ref", []), ("q06-f16", "isa-ivybridge", ["--variant", "ivybridge"]), ("q06-f16", "server4-a", SERVER4)]
+for m in ("g3-1b-q40", "q35-08-q40"):
+    JOBS += [(m, "ref", []), (m, "server4-a", SERVER4)]
 JOBS += [("q06-q4km", n, a) for n, a in FULL if n not in FIRST]
 
 if __name__ == "__main__":

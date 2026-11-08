@@ -1,0 +1,35 @@
+\section{A protocol for local evaluations}
+\label{sec:recommend}
+
+None of the effects above is a bug in the usual sense: each kernel computes a correct float32
+approximation, and the documentation warns about prompt-cache nondeterminism. The problem is
+that evaluation practice treats these settings as irrelevant. The following steps cost little
+and make local results comparable.
+
+\begin{enumerate}
+\item \textbf{Report the execution configuration with the score.} Release tag, the CPU backend
+tier that loaded (the \texttt{system\_info} line names its features), micro-batch size, flash
+attention, repack, number of slots, prompt cache, and the KV cache type. Thread count can be
+omitted; it never changed a result here.
+\item \textbf{Pin what can be pinned.} For comparisons between models, run both on the same
+machine with the same backend library, one slot, sequential requests and the prompt cache off.
+This makes runs bitwise reproducible (Section~\ref{sec:results}) at the cost of throughput.
+\item \textbf{Measure the noise floor before comparing.} Run the reference model under two or
+three execution-equivalent configurations (for example a second tier and a different micro-batch
+size) and count flips. Any model-versus-model difference that is not clearly larger than the
+spread among these runs should not be reported as a difference. For the 980-item set used here,
+that spread was up to 2.5 points on the 80-item GSM8K subset and 1 point on 600 MMLU items.
+\item \textbf{Use paired statistics.} Report discordant pairs (flips in each direction) and an
+exact McNemar test rather than two accuracies with independent error bars \citep{miller2024}.
+Item-level agreement between two configurations of the same file is a direct estimate of how
+much of a model comparison's discordance is execution noise.
+\item \textbf{Do not gate on single questions.} A pre-registered threshold should include a
+margin at least as large as the measured execution spread, or be evaluated under several
+configurations.
+\end{enumerate}
+
+For runtime developers, the amplification result suggests where determinism is cheapest to buy.
+Thread count is already invariant. Making the activation quantizer's input invariant to the
+kernel path (for example by fixing the reduction order of the float epilogue that feeds it) would
+remove most of the divergence between tiers, and making the repacked matmul use one kernel for
+every row regardless of $n \bmod 4$ would remove the dependence on batch composition.

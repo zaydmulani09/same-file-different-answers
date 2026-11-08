@@ -1,0 +1,49 @@
+\section{Results}
+\label{sec:results}
+
+\subsection{Which settings change the logits}
+Table~\ref{tab:kl} is the teacher-forced map: for each model file and each execution-equivalent
+setting, the mean KL divergence of the next-token distribution from the reference and the
+fraction of positions whose top-1 token is unchanged.
+
+\begin{table}[t]
+\centering\scriptsize
+\caption{Teacher-forced divergence from the reference configuration on 12 chunks of 512 WikiText
+tokens. Each cell is mean KLD / top-1 agreement (\%). ``$=$'' marks a setting that is
+indistinguishable from the reference at the tool's storage precision (mean $|$KLD$|$ $\le
+10^{-6}$ and 100\% top-1 agreement); in every case checked at the server level, these settings
+were also bitwise identical. Reference: \texttt{alderlake}, 4 threads, micro-batch 512, flash
+attention off, repack on.}
+\label{tab:kl}
+\input{tab_kl}
+\end{table}
+
+\RESULTSKL
+
+\subsection{What the differences do to benchmark answers}
+\RESULTSEVAL
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.49\linewidth]{fig/margins.pdf}\hfill
+\includegraphics[width=0.49\linewidth]{fig/divergence.pdf}
+\caption{Left: reference answer margins (log-probability gap between the two best letters) for
+all MMLU items and for the items whose answer changed under at least one setting
+(Q4\_K\_M). Changed answers come from the low-margin tail. Right: fraction of GSM8K outputs that
+have diverged from the reference by each generated token index, per setting.}
+\label{fig:margins}
+\end{figure}
+
+\subsection{Run-to-run variation under a parallel server}
+\RESULTSSERVER
+
+\subsection{How large is this relative to a quantization comparison?}
+\RESULTSQUANT
+
+\begin{table}[t]
+\centering\small
+\caption{Differences between quantization formats of the same model, all run at $R$.
+Compare with the execution-only differences in Table~\ref{tab:evalfull}.}
+\label{tab:quant}
+\input{tab_quant}
+\end{table}
