@@ -1,0 +1,8 @@
+{"ctx": 512, "ub": 64, "mean_kld": 0.0, "same_top": 100.0}
+{"ctx": 512, "ub": 8, "mean_kld": 0.0, "same_top": 100.0}
+{"ctx": 500, "ub": 64, "mean_kld": -0.0, "same_top": 100.0}
+{"ctx": 500, "ub": 8, "mean_kld": 9.5e-05, "same_top": 99.95}
+{"ctx": 449, "ub": 64, "mean_kld": -0.0, "same_top": 100.0}
+{"ctx": 449, "ub": 8, "mean_kld": -0.0, "same_top": 100.0}
+{"ctx": 450, "ub": 64, "mean_kld": 2.2e-05, "same_top": 99.944}
+{"ctx": 450, "ub": 8, "mean_kld": 2.2e-05, "same_top": 99.944}

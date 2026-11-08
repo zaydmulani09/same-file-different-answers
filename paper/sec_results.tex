@@ -11,15 +11,16 @@ fraction of positions whose top-1 token is unchanged.
 \caption{Teacher-forced divergence from the reference configuration on 12 chunks of 512 WikiText
 tokens. Each cell is mean KLD / top-1 agreement (\%). ``$=$'' marks a setting that is
 indistinguishable from the reference at the tool's storage precision (mean $|$KLD$|$ $\le
-10^{-6}$ and 100\% top-1 agreement). UBSIXFOUR Reference: \texttt{alderlake}, 4 threads, micro-batch 512, flash
+10^{-6}$ and 100\% top-1 agreement) for 512-token sequences; Section~\ref{sec:ubshape} shows
+that micro-batches 8 and 64 do differ at other lengths. Reference: \texttt{alderlake}, 4 threads, micro-batch 512, flash
 attention off, repack on.}
 \label{tab:kl}
 \input{tab_kl}
 \end{table}
 
 Two groups appear. Rerunning the reference, changing the thread count, and the
-\texttt{haswell} tier are indistinguishable from the reference for every model; so are
-micro-batches of 8 and 64. Every other setting differs from the reference for at least one
+\texttt{haswell} tier are indistinguishable from the reference for every model; so, on these
+512-token sequences, are micro-batches of 8 and 64. Every other setting differs from the reference for at least one
 model, and the differences within a model are of one size: for Q4\_K\_M every differing setting
 gives a mean KLD between 0.011 and 0.012 and changes the top-1 token at 5.4 to 6.2\% of
 positions, whether the change is the backend tier, micro-batch 1, flash attention or turning
@@ -44,6 +45,7 @@ equal to $R$. ``same out'': items whose generated tokens are equal. Flips are ov
 items, reference right and other wrong / reference wrong and other right. $p$: exact McNemar
 test on the flips. The last row compares the two \texttt{server4} runs with each other.}
 \label{tab:eval}
+\footnotesize\setlength{\tabcolsep}{4pt}
 \input{tab_eval_main}
 \end{table}
 
@@ -53,15 +55,17 @@ every difference below comes from the one changed setting. Loading the AVX tier
 first-step log-probability moved (median change of the top token's log-probability 0.10 nats).
 One generated output in five differed, 41 of 600 MMLU answers changed and 37 items flipped
 between right and wrong (15 one way, 22 the other). Micro-batch 7 did the same (49 MMLU answers
-changed, 47 flips). Yet every accuracy moved by at most 1.3 points, and no McNemar test was close
-to significance ($p\ge0.32$). The flips cancel because they are not caused by the model getting
-better or worse; they are coin tosses on items the model was unsure about.
+changed, 47 flips), and so did flash attention (51 MMLU answers changed, 41 flips, and a GSM8K
+difference of three items, 3.7 points). Yet for the tier change and micro-batch 7 every accuracy
+moved by at most 1.3 points, and no McNemar test in Table~\ref{tab:eval} was close to
+significance ($p\ge0.23$). The flips cancel because they are not caused by the model getting
+better or worse; they happen on items the model was close to undecided about.
 
-That is visible in the reference margins (Figure~\ref{fig:margins}, left). Across the five
-benchmark settings that differ from $R$, 71 distinct MMLU items changed their answer at least
-once. Their median reference margin was 0.28 nats, against 1.65 for all items. Of the 44 items
-with a margin under 0.25 nats, 33 changed under at least one setting; of the 424 items with a
-margin of at least 1 nat, one did. The largest margin that changed was 1.25 nats.
+That is visible in the reference margins (Figure~\ref{fig:margins}, left). Across the seven
+benchmark settings that differ from $R$, 82 distinct MMLU items changed their answer at least
+once. Their median reference margin was 0.30 nats, against 1.65 for all items. Of the 44 items
+with a margin under 0.25 nats, 34 changed under at least one setting; of the 424 items with a
+margin of at least 1 nat, four did. The largest margin that changed was 1.84 nats.
 
 On GSM8K the divergence happens early and then compounds (Figure~\ref{fig:margins}, right).
 Under the AVX tier 52 of 80 reasoning chains differ from the reference, with a median first
@@ -87,6 +91,26 @@ have diverged from the reference by each generated token index, per setting. The
 \label{fig:margins}
 \end{figure}
 
+\subsection{A setting that looked safe and was not}
+\label{sec:ubshape}
+The teacher-forced grid showed micro-batch 64 as indistinguishable from micro-batch 512 for all
+six models, so I expected the micro-batch 64 benchmark run to be bitwise identical to $R$. It was
+not: 89.9\% of items were identical, 98.4\% had the same output, 4 MMLU answers changed and 4
+items flipped (2 each way). The grid feeds sequences of exactly 512 tokens, a multiple of 64,
+while benchmark prompts have arbitrary lengths.
+
+To check that, I ran a follow-up probe after seeing this result (\texttt{ub\_shape.py}; not
+pre-registered): Q4\_K\_M, 8 chunks per sequence length, micro-batch 64 and 8 against
+micro-batch 512 at the same length. At lengths 512 and 449 both were indistinguishable from the
+reference. At length 450 both differed (mean KLD $2.2\times10^{-5}$), and at length 500
+micro-batch 8 differed and micro-batch 64 did not. The mean divergence is small, presumably because
+only the positions in the final micro-batch of each sequence are affected; I did not measure
+divergence per position. In the cases measured, a difference appeared when the last
+micro-batch of the sequence held 2 or 4 rows (450 split by 64 or 8, and 500 split by 8), and not
+when it held 1 or 52; I did not trace which kernel path this selects. The practical point is that
+a setting that leaves fixed-length test sequences unchanged can still change benchmark answers,
+so a teacher-forced check on one sequence length is not enough to call a setting safe.
+
 \subsection{Run-to-run variation under a parallel server}
 The \texttt{server4} setting is how a parallel evaluation harness usually drives
 \texttt{llama-server}. Its numbers depend on request timing: how many requests share a decode
@@ -94,10 +118,18 @@ step and how prompts split across micro-batches change from run to run. For Q4\_
 two runs agreed bitwise with $R$ on fewer than 12\% of items, and the two runs agreed with each
 other bitwise on 45.4\% (445 of 980). They gave the same visible output on 87.9\% of items, and
 33 of 80 GSM8K chains; 17 items flipped between the two runs and GSM8K accuracy happened to
-match. A user who runs this command twice and compares answers sees two different models.
+match. A user who runs this command twice and compares answers sees about one answer in eight
+change.
 
-For the other files the parallel server mattered less, again following the format: Qwen3 Q4\_0
-kept 71.6\% of items bitwise identical to $R$ and Q8\_0 73.5\%, with 6 and 3 flips. GEMMASERVER
+For the other files the parallel server mattered less. Qwen3 Q4\_0 kept 71.6\% of items bitwise
+identical to $R$ and Q8\_0 73.5\%, with 6 and 3 flips. F16 kept only 57.2\% bitwise identical,
+but 99.5\% of its outputs were the same, consistent with its tiny teacher-forced divergence:
+its log-probabilities move, but rarely enough to change a token. Gemma-3-1B Q4\_0 and
+Qwen3.5-0.8B Q4\_0 kept 88.4\% and 92.3\%, with one flip each. So the server setting affected
+the two non-Qwen3 Q4\_0 files much less than Qwen3 Q4\_0, although all three use the same
+kernels and have teacher-forced divergences within a factor of two (Table~\ref{tab:kl}). I did not investigate
+why; prompt lengths and the number of decode steps that run with more than one active slot both
+differ between models.
 
 \subsection{How large is this relative to a quantization comparison?}
 To judge whether these numbers matter, Table~\ref{tab:quant} compares the four Qwen3-0.6B

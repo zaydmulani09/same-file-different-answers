@@ -42,8 +42,8 @@ micro-batch modulo four, which is a function of prompt length, micro-batch size,
 hits and which other requests share the batch.
 
 \paragraph{Prompt path versus generation path.}
-For multi-row products llama.cpp calls \texttt{llamafile\_sgemm} (tinyBLAS) when the shape
-qualifies: never for a single row (\texttt{n < 2}), and for Q8\_0 and Q4\_0 only when
+For multi-row products llama.cpp calls tinyBLAS (\texttt{llamafile\_sgemm}) when the
+shape qualifies: never for a single row (\texttt{n < 2}), and for Q8\_0 and Q4\_0 only when
 $n \ge 8$ or $n = 4$; F16 additionally needs F16C. Otherwise it falls back to the per-row
 \texttt{vec\_dot}. Attention's $QK^\top$ product reads the F16 key cache and switches path
 with the number of query rows in the same way. The llama.cpp server documentation already warns

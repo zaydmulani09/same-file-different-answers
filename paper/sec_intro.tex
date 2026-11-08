@@ -31,9 +31,10 @@ neither batch invariance nor cross-machine agreement has been measured as far as
 On Qwen3-0.6B in Q4\_K\_M, with 980 items from MMLU, TriviaQA and GSM8K:
 \begin{itemize}
 \item Running the same configuration twice is bitwise reproducible, and thread count never
-mattered in any test. Neither did the \texttt{haswell} tier or micro-batches of 8 and 64. Every
-other setting changed the logits for at least one file, and the AVX and SSE tiers, micro-batch 1
-and flash attention changed them for all six.
+mattered in any test. Neither did the \texttt{haswell} tier. Every other setting changed the
+logits for at least one file, and the AVX and SSE tiers, micro-batch 1 and flash attention
+changed them for all six. Micro-batch 64 looked safe on fixed 512-token sequences but changed
+10\% of benchmark items; a follow-up probe shows it differs at some other sequence lengths.
 \item Running the same file on the AVX-only backend tier instead of the AVX2 tier left no item
 bitwise identical, changed 20\% of generated outputs and 41 of 600 MMLU answers, and produced 37
 correct/incorrect flips, while every task's accuracy moved by at most 1.3 points. On wikitext the

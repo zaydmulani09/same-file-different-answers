@@ -107,3 +107,14 @@ skip q06-q80__ref (exists)
 >> q06-f16 server4-a
 {"name": "q06-f16__server4-a", "s": 1202, "mmlu": "239/600", "triviaqa": "35/300", "gsm8k": "34/80"}
 >> g3-1b-q40 ref
+{"name": "g3-1b-q40__ref", "s": 1504, "mmlu": "233/600", "triviaqa": "54/300", "gsm8k": "14/80"}
+>> g3-1b-q40 server4-a
+{"name": "g3-1b-q40__server4-a", "s": 873, "mmlu": "233/600", "triviaqa": "55/300", "gsm8k": "14/80"}
+>> q35-08-q40 ref
+{"name": "q35-08-q40__ref", "s": 1257, "mmlu": "233/600", "triviaqa": "29/300", "gsm8k": "18/80"}
+>> q35-08-q40 server4-a
+{"name": "q35-08-q40__server4-a", "s": 1067, "mmlu": "233/600", "triviaqa": "29/300", "gsm8k": "19/80"}
+>> q06-q4km ub64
+{"name": "q06-q4km__ub64", "s": 980, "mmlu": "187/600", "triviaqa": "27/300", "gsm8k": "19/80"}
+>> q06-q4km fa-on
+{"name": "q06-q4km__fa-on", "s": 808, "mmlu": "184/600", "triviaqa": "30/300", "gsm8k": "16/80"}

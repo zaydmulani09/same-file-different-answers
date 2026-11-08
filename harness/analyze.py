@@ -151,7 +151,7 @@ def write_tables():
 
     d = s["q06-q4km"]
     L = [r"\begin{tabular}{lrrrrrrrr}", r"\toprule",
-         r"configuration & ident. \% & same out \% & MMLU ans. changed & flips & $p$ & $\Delta$MMLU & $\Delta$TQA & $\Delta$GSM\\",
+         r"configuration & ident. \% & same out \% & MMLU chg. & flips & $p$ & $\Delta$MMLU & $\Delta$TQA & $\Delta$GSM\\",
          r"\midrule"]
     for c in [*CONFIGS, "server4-a_vs_b"]:
         if c in d:

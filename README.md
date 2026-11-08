@@ -16,6 +16,8 @@ Short answer, for Qwen3-0.6B Q4_K_M on 980 items:
 | rerun of the same configuration | 100% | 0 | 0 |
 | AVX tier instead of AVX2 tier | 0% | 41 | at most 1.3 points |
 | micro-batch 7 instead of 512 | 0% | 49 | at most 1.3 points |
+| micro-batch 64 instead of 512 | 89.9% | 4 | 0 |
+| flash attention on | 0% | 51 | at most 3.7 points (3 of 80 GSM8K) |
 | parallel server, run twice, compared with itself | 45.4% | 13 | at most 1 point |
 
 Thread count never changed anything. A pre-registered dose-response test traces the size of the
@@ -51,6 +53,7 @@ Table 1 of the paper. Then:
 py -3 harness/jobs.py 0 1      # benchmark queue (about 40-55 min per run)
 py -3 harness/kl.py 12         # teacher-forced grid
 py -3 harness/amp.py 8         # amplification test
+py -3 harness/ub_shape.py      # micro-batch vs sequence-length probe (post hoc)
 py -3 harness/analyze.py
 py -3 harness/figs.py
 ```

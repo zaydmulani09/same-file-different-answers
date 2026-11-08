@@ -70,3 +70,9 @@
 {"model": "q35-08-q40", "config": "isa-sse42", "chunks": 12, "mean_kld": 0.0013, "max_kld": 0.016693, "same_top": 97.941, "rms_dp": 0.788, "ppl_q": 21.088978}
 {"model": "q35-08-q40", "config": "t8", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
 {"model": "q35-08-q40", "config": "t12", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
+{"model": "q35-08-q40", "config": "ub1", "chunks": 12, "mean_kld": 0.00115, "max_kld": 0.011401, "same_top": 97.712, "rms_dp": 0.714, "ppl_q": 21.080266}
+{"model": "q35-08-q40", "config": "ub7", "chunks": 12, "mean_kld": -0.0, "max_kld": 4.9e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
+{"model": "q35-08-q40", "config": "ub8", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
+{"model": "q35-08-q40", "config": "ub64", "chunks": 12, "mean_kld": -0.0, "max_kld": 5e-05, "same_top": 100.0, "rms_dp": 0.001, "ppl_q": 21.071356}
+{"model": "q35-08-q40", "config": "fa-on", "chunks": 12, "mean_kld": 0.001161, "max_kld": 0.011151, "same_top": 97.843, "rms_dp": 0.72, "ppl_q": 21.097745}
+{"model": "q35-08-q40", "config": "repack-off", "chunks": 12, "mean_kld": 0.001272, "max_kld": 0.012928, "same_top": 97.778, "rms_dp": 0.8, "ppl_q": 21.101236}

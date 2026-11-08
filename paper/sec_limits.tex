@@ -25,4 +25,18 @@ releases. The measurement harness is release-agnostic and can be rerun.
 \paragraph{One-factor design.}
 Each configuration differs from the reference in one factor. Interactions (for example a
 different tier and the parallel server together, which is what two different users would
-actually run) were not measured and would add, not remove, variation.
+actually run) were not measured.
+
+\paragraph{Coverage of the two measurements.}
+The teacher-forced grid uses one sequence length (512 tokens), which hid the micro-batch 64
+effect (Section~\ref{sec:ubshape}); other ``$=$'' cells in Table~\ref{tab:kl} may also hide
+length-dependent differences, though thread count and the \texttt{haswell} tier have no
+plausible mechanism for one. The benchmark runs cover a subset of settings, mostly on one model,
+and each configuration except \texttt{server4} was run once. Since the fixed configurations are
+deterministic, one run is enough to measure them, but the \texttt{server4} numbers come from at
+most two runs and their spread is not estimated.
+
+\paragraph{Use of AI tools.}
+The experiment code, the analysis and drafts of the text were produced with the help of an AI
+coding assistant (Claude, Anthropic). All numbers in this paper are computed by the released
+scripts from the released raw outputs, and the author is responsible for the content.

@@ -1,4 +1,4 @@
-\begin{tabular}{p{0.37\linewidth}p{0.13\linewidth}p{0.40\linewidth}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.37\linewidth}>{\raggedright\arraybackslash}p{0.13\linewidth}>{\raggedright\arraybackslash}p{0.40\linewidth}}
 \toprule
 prediction & outcome & evidence\\
 \midrule
@@ -8,6 +8,7 @@ P3 \texttt{ivybridge} differs & supported & 6/6 models\\
 P4 \texttt{sandybridge} differs from \texttt{ivybridge}; \texttt{sse42} differs from AVX tiers & not tested & both differ from $R$; the tiers were never compared with each other\\
 P5 micro-batch 1 differs & supported & 6/6 models\\
 P5 micro-batch 7 differs & \textbf{falsified} for 5/6 & differs only for Q4\_K\_M; identical for Q4\_0 (3 models), Q8\_0, F16\\
+(no prediction) micro-batch 8, 64 & -- & identical at 512 tokens; differ at some other lengths (Section~\ref{sec:ubshape})\\
 P6 repack off differs for Q4\_0, Q4\_K\_M only & supported & differs for all four Q4 files, identical for Q8\_0 and F16\\
 P7 flash attention differs & supported & 6/6 models\\
 P8 rerun of $R$ identical & supported & 980/980 items bitwise equal\\

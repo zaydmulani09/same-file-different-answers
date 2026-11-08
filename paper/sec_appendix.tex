@@ -13,6 +13,7 @@ but one. Run any tool once per folder and check the \texttt{system\_info} line.
 the F16 file with \texttt{llama-quantize}) and check the hashes.
 \item \texttt{py -3 harness/jobs.py 0 1} runs the evaluation queue; \texttt{py -3 harness/kl.py 12}
 runs the teacher-forced grid; \texttt{py -3 harness/amp.py 8} runs the amplification test;
+\texttt{py -3 harness/ub\_shape.py} runs the sequence-length probe of Section~\ref{sec:ubshape};
 \texttt{py -3 harness/analyze.py} and \texttt{py -3 harness/figs.py} rebuild every table and
 figure in this paper from the raw outputs.
 \end{enumerate}

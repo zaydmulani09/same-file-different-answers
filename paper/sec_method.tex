@@ -21,7 +21,8 @@ weights themselves do not depend on the machine that made them.
 
 \begin{table}[t]
 \centering\small
-\caption{Model files. Hashes are the first 16 hex digits of SHA-256.}
+\caption{Model files. Hashes are the first 16 hex digits of SHA-256. $^{*}$Qwen3.5 mixes
+attention layers with linear-recurrence layers.}
 \label{tab:models}
 \begin{tabular}{llll}
 \toprule
@@ -32,7 +33,7 @@ q06-q80   & Qwen3-0.6B Q8\_0 & Q8\_0 & \texttt{f34d7b4d1035d121}\\
 q06-q4km  & Qwen3-0.6B Q4\_K\_M & Q4\_K, Q6\_K & \texttt{683e1b8a8ed85096}\\
 q06-q40   & Qwen3-0.6B Q4\_0 & Q4\_0 & \texttt{34a119e136d15e41}\\
 g3-1b-q40 & Gemma-3-1B-it QAT Q4\_0 & Q4\_0 & \texttt{6364f1139062ff56}\\
-q35-08-q40 & Qwen3.5-0.8B Q4\_0 & Q4\_0 (hybrid attention / linear recurrence) & \texttt{f9a8630a4a96076b}\\
+q35-08-q40 & Qwen3.5-0.8B Q4\_0 & Q4\_0$^{*}$ & \texttt{f9a8630a4a96076b}\\
 \bottomrule
 \end{tabular}
 \end{table}
