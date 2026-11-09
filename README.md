@@ -3,7 +3,8 @@
 Code, data and paper for *Same File, Different Answers: Execution-Equivalent Settings Change
 Benchmark Results of Quantized LLMs on CPUs* (Zayd Mulani, 2026). The PDF is
 [`paper/main.pdf`](paper/main.pdf); the archived preprint is on Zenodo,
-[doi:10.5281/zenodo.24055876](https://doi.org/10.5281/zenodo.24055876).
+[doi:10.5281/zenodo.24055876](https://doi.org/10.5281/zenodo.24055876), and on SSRN,
+[abstract 7683662](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=7683662).
 
 The question: if you keep the llama.cpp release, the GGUF file, the prompts and greedy decoding
 fixed, and only change settings that are supposed to be performance options (the CPU backend
