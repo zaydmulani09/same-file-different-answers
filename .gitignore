@@ -5,3 +5,5 @@ paper/*.log
 __pycache__/
 outreach/
 same-file-different-answers.pdf
+tmlr/_style/
+tmlr/out/
