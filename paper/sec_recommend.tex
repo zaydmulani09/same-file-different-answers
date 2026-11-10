@@ -18,8 +18,8 @@ This makes runs bitwise reproducible (Section~\ref{sec:results}) at the cost of 
 three execution-equivalent configurations (for example a second tier and a different micro-batch
 size) and count flips. Any model-versus-model difference that is not clearly larger than the
 spread among these runs should not be reported as a difference. For the 980-item set used here,
-accuracy moved by at most 3.7 points on the 80-item GSM8K subset (three items) and 0.5 points
-on 600 MMLU items, but up to 51 MMLU answers changed. The accuracy spread understates the noise;
+accuracy moved by at most 3.7 points on the 80-item GSM8K subset (three items), 1.7 points on
+300 TriviaQA items and 0.5 points on 600 MMLU items, but up to 51 MMLU answers changed. The accuracy spread understates the noise;
 the answer-level spread is the better measure.
 \item \textbf{Use paired statistics.} Report discordant pairs (flips in each direction) and an
 exact McNemar test rather than two accuracies with independent error bars \citep{miller2024}.

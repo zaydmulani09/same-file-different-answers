@@ -19,7 +19,8 @@ perturbation that caused it. A small simulation (\texttt{amp\_sim.py}) makes the
 perturbing Gaussian activations with sparse outliers by one ulp of relative error changes only
 $4.8\times10^{-6}$ of the Q8\_0 codes, but those changes raise the relative error of the
 quantized row from $1.2\times10^{-7}$ to $2.9\times10^{-5}$, a factor of about 250, in a single
-matmul. A transformer applies this step seven times per layer, and the errors feed forward.
+matmul. Each layer quantizes four distinct activation vectors (the attention input, the attention
+output, the MLP input and the MLP hidden state), and the errors feed forward.
 
 Weights stored as F16 also quantize activations, but to F16 (11 significant bits instead of
 about 8, and no shared block scale), and F32 weights with an F32 KV cache do not discretize

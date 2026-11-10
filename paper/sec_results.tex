@@ -58,8 +58,8 @@ between right and wrong (15 one way, 22 the other). Micro-batch 7 did the same (
 changed, 47 flips), and so did flash attention (51 MMLU answers changed, 41 flips, and a GSM8K
 difference of three items, 3.7 points). Yet for the tier change and micro-batch 7 every accuracy
 moved by at most 1.3 points, and no McNemar test in Table~\ref{tab:eval} was close to
-significance ($p\ge0.23$). The flips cancel because they are not caused by the model getting
-better or worse; they happen on items the model was close to undecided about.
+significance ($p\ge0.23$). The flips largely cancel, as expected if they come not from the model getting
+better or worse but from items the model was close to undecided about.
 
 That is visible in the reference margins (Figure~\ref{fig:margins}, left). Across the seven
 benchmark settings that differ from $R$, 82 distinct MMLU items changed their answer at least
@@ -136,9 +136,9 @@ To judge whether these numbers matter, Table~\ref{tab:quant} compares the four Q
 formats with each other, all at $R$. Going from F16 to Q8\_0 changes 32 MMLU answers and 40 items
 flip; going from F16 to Q4\_K\_M changes 173 answers and costs 8.7 MMLU points. The AVX tier change
 on the Q4\_K\_M file, with no change to the weights, changed 41 MMLU answers, more than the whole
-F16-to-Q8\_0 quantization step did. In teacher-forced terms the tier change on Q8\_0 (mean KLD
-0.0013) is about 60\% of the divergence between Q8\_0 and F16 (0.0023), 11\% of the Q4\_K\_M-to-F16
-divergence and 1.3\% of the Q4\_0-to-F16 divergence (\texttt{quantkl.py}).
+F16-to-Q8\_0 quantization step did. In teacher-forced terms, the AVX tier change on each file, measured against that file's own
+divergence from F16 (\texttt{quantkl.py}), is about 60\% for Q8\_0 (0.0013 against 0.0023), 11\%
+for Q4\_K\_M (0.011 against 0.104) and 1.3\% for Q4\_0 (0.0025 against 0.194).
 
 So execution noise does not hide large quantization losses: the 8-point drop from F16 to
 Q4\_K\_M is far outside the accuracy spread of any execution change here. It does make small

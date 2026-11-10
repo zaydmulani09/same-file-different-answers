@@ -14,8 +14,8 @@ release can show.
 The models have 0.6 to 1 billion parameters and the evaluation uses 980 items per configuration.
 Small models have flatter output distributions and so more low-margin items, which likely
 inflates flip rates relative to larger models. Absolute flip counts should not be read as
-estimates for 7B or 70B models; the mechanism and the existence of the effect do not depend on
-model size.
+estimates for 7B or 70B models. The amplification mechanism does not depend on model size, but
+I did not measure how flip rates scale with it.
 
 \paragraph{Release-specific mechanism.}
 The kernel facts in Section~\ref{sec:background} hold for release b11696. llama.cpp changes
